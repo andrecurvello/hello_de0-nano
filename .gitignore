@@ -1,4 +1,6 @@
-hello.qws
+*.qws
+*.rpt
 db/*
 output_files/*
 incremental_db/*
+simulation/*
