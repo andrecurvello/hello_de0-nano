@@ -22,6 +22,7 @@ architecture arch of hello is
     signal   led_tick        : std_logic := '0';
 begin
     led <= std_logic_vector( to_unsigned( led_counter , led'length ) );
+
     clk_div : process( clock )
     begin
         if rising_edge( clock ) then
