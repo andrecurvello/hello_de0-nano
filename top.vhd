@@ -1,34 +1,34 @@
--- Hello_DE0-Nano - top entity, contains hello
-library IEEE;
-use IEEE.std_logic_1164.ALL;
+-- hello_de0-nano - top entity, contains hello
+library ieee;
+use ieee.std_logic_1164.all;
 
 entity top is
-    Port(
-        CLOCK_50 : IN  std_logic;
-        LED      : OUT std_logic_vector( 7 downto 0 )
+    port(
+        CLOCK_50 : in  std_logic;
+        LED      : out std_logic_vector( 7 downto 0 )
     );
 end top;
 
-architecture Arch of top is
+architecture arch of top is
     component hello
         generic(
             clock_freq_hz : integer;
             tick_freq_hz  : integer
         );
-        Port( 
-            CLOCK_50 : IN  std_logic;
-            LED      : OUT std_logic_vector( 7 downto 0 )
+        port( 
+            clock : in  std_logic;
+            led   : out std_logic_vector( 7 downto 0 )
         );
     end component;
 begin
-    hello_U0: hello
+    hello_u0: hello
         generic map (
             clock_freq_hz => 50000000,
             tick_freq_hz => 10
         )
         port map (
-            CLOCK_50 => CLOCK_50,
-            LED => LED
+            clock => CLOCK_50,
+            led   => LED
         )
     ;
 end architecture;
