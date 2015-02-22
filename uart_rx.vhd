@@ -18,5 +18,10 @@ entity uart_rx is
 end uart_rx;
 
 architecture uart_rx_arch of uart_rx is
-begin
+    constant clk_counter_max : integer := clock_freq_hz / baud_hz;
+    signal   clk_counter     : integer range 1 to clk_counter_max := 1;
+    signal   busy_reg        : std_logic := '0';
+    signal   data_reg        : std_logic_vector(9 downto 0) := "0000000000";
+begin -- architecture uart_rx_arch
+    busy <= busy_reg;
 end architecture uart_rx_arch;
