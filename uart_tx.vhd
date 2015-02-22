@@ -1,7 +1,6 @@
 -- Universal Asynchronous Transmitter
 -- TODO(aray): add reset handler (ask mark for best practices)
 -- TODO(aray): share code for clock divider if possible
--- TODO(aray): share code for parity calculator if possible
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -30,15 +29,6 @@ architecture uart_tx_arch of uart_tx is
 begin
     busy <= busy_reg;
     wire <= wire_reg;
-
-    -- TODO(aray): learn how these function thingies work
-    function parity(d : std_logic_vector(7 downto 0)) return std_logic is
-        variable result : std_logic;
-    begin
-        result := ( d(0) xor d(1) xor d(2) xor d(3) xor
-                    d(4) xor d(5) xor d(6) xor d(7) );
-        return result; -- TODO(aray): can this be a single statement?
-    end function parity;
 
     -- TODO(aray): oh god clean up the nesting (See also TODO:Learn VHDL)
     clk_div : process( clock )
