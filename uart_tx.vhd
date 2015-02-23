@@ -14,6 +14,7 @@ entity uart_tx is
         clock  : in  std_logic;
         busy   : out std_logic;
         enable : in  std_logic;
+        reset  : in  std_logic;
         wire   : out std_logic;
         data   : in  std_logic_vector(7 downto 0)
     );
@@ -33,22 +34,27 @@ begin
     clk_div : process( clock )
     begin
         if rising_edge( clock ) then
-            if( busy_reg = '0' ) then -- no transmit in progress, check enable
-                if( enable = '1' ) then -- time to start a new transmission
-                    data_reg <= '1' & data (7 downto 0) & '0';
-                    busy_reg <= '1';
-                    clk_counter <= clk_counter_max;
-                end if;
-            else -- We have a transmit in progress
-                if( clk_counter < clk_counter_max ) then
-                    clk_counter <= clk_counter + 1;
-                else
-                    clk_counter <= 1;
-                    if( data_reg = "0000000000" ) then
-                        busy_reg <= '0'; -- not busy anymore
-                    else
-                        wire_reg <= data_reg(0);
-                        data_reg <= '0' & data_reg(9 downto 1);
+            if( reset = '1' ) then
+                busy_reg <= '0';
+                wire_reg <= '1';
+            else
+                if( busy_reg = '0' ) then -- no transmit in progress
+                    if( enable = '1' ) then -- time to start a new transmission
+                        data_reg <= '1' & data (7 downto 0) & '0';
+                        busy_reg <= '1';
+                        clk_counter <= clk_counter_max; -- tick next clock
+                    end if;
+                else -- We have a transmit in progress
+                    if( clk_counter < clk_counter_max ) then
+                        clk_counter <= clk_counter + 1; -- count up to tick
+                    else -- tick
+                        clk_counter <= 1; -- wraparound
+                        if( data_reg = "0000000000" ) then
+                            busy_reg <= '0'; -- done, not busy anymore
+                        else
+                            wire_reg <= data_reg(0);
+                            data_reg <= '0' & data_reg(9 downto 1);
+                        end if;
                     end if;
                 end if;
             end if;

@@ -12,6 +12,7 @@ entity uart_rx is
         clock  : in  std_logic;
         busy   : out std_logic;
         enable : in  std_logic;
+        reset  : in  std_logic;
         wire   : in  std_logic;
         data   : out std_logic_vector(7 downto 0)
     );

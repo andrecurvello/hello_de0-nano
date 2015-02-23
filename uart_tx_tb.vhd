@@ -11,6 +11,7 @@ architecture uart_tx_tb_arch of uart_tx_tb is
     signal   clock        : std_logic := '0';
     signal   busy         : std_logic := '0';
     signal   enable       : std_logic := '0';
+    signal   reset        : std_logic := '0';
     signal   wire         : std_logic := '0';
     signal   data         : std_logic_vector(7 downto 0);
 
@@ -23,6 +24,7 @@ architecture uart_tx_tb_arch of uart_tx_tb is
             clock  : in  std_logic;
             busy   : out std_logic;
             enable : in  std_logic;
+            reset  : in  std_logic;
             wire   : out std_logic;
             data   : in  std_logic_vector( 7 downto 0) := "00000000"
         );
@@ -32,12 +34,13 @@ begin -- architecture uart_tx_tb_arch
     uart_tx_u0: uart_tx
         generic map (
             clock_freq_hz => 50000000,
-            baud_hz  =>       5000000
+            baud_hz  =>      25000000
         )
         port map (
             clock  => clock,
             busy   => busy,
             enable => enable,
+            reset  => reset,
             wire   => wire,
             data   => data
         )
@@ -58,10 +61,19 @@ begin -- architecture uart_tx_tb_arch
         wait for clock_period;
         data <= "01001101";
         enable <= '1';
-		  wait for clock_period;
-		  data <= "00000000";
-		  enable <= '0';
-		  wait;
+        wait for clock_period;
+        data <= "00000000";
+        enable <= '0';
+        wait for clock_period * 10;
+        reset <= '1';
+        data <= "00110011";
+        enable <= '1';
+        wait for clock_period;
+        reset <= '0';
+        wait for clock_period;
+        data <= "00000000";
+        enable <= '0';
+        wait; -- leave this one last to run this process only once
     end process init;
 
 end architecture uart_tx_tb_arch;
