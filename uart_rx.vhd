@@ -20,7 +20,7 @@ end uart_rx;
 
 architecture uart_rx_arch of uart_rx is
     constant clk_counter_max  : integer := clock_freq_hz / baud_hz;
-    constant clk_counter_half : integer := clock_freq_max / 2;
+    constant clk_counter_half : integer := clk_counter_max / 2;
     signal   clk_counter      : integer range 1 to clk_counter_max := 1;
     signal   busy_reg         : std_logic := '0';
     signal   valid_reg        : std_logic := '0';
@@ -46,19 +46,22 @@ begin -- architecture uart_rx_arch
                         clk_counter <= clk_counter_half; -- sample halfway
                     end if;
                 else -- We have a transmit in progress
-                    if (clk_counter = clk_counter_max) then
-                        -- TODO: reset out if first sample is not '0'
-                        clk_counter <= 1; -- wraparound
-                        data_reg <= data_reg(8 downto 0) & wire;
-                        if (data_reg(9) = '0') then -- done!
-                            if (data_reg(0) = '1') then -- check stop bit
-                                valid_reg <= '1';
-                            else -- TODO convert 'data(0) = 1' to valid_reg
-                                valid_reg <= '0';
+                    if (clk_counter < clk_counter_max) then
+                        clk_counter <= clk_counter + 1; -- count up to tick
+                    else
+                        if (wire = '1') and (data_reg = "1111111111") then
+                            busy_reg <= '0'; -- first bit wasnt 0, bail out
+                        else -- TODO: reset out if first sample is not '0'
+                            clk_counter <= 1; -- wraparound
+                            data_reg <= data_reg(8 downto 0) & wire;
+                            if (data_reg(9) = '0') then -- done!
+                                if (data_reg(0) = '1') then -- check stop bit
+                                    valid_reg <= '1';
+                                else -- TODO convert 'data(0) = 1' to valid_reg
+                                    valid_reg <= '0';
+                                end if;
                             end if;
                         end if;
-                    else -- tick
-                        clk_counter <= clk_counter + 1; -- count up to tick
                     end if;
                 end if;
             end if;

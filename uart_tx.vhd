@@ -1,6 +1,4 @@
 -- Universal Asynchronous Transmitter
--- TODO(aray): add reset handler (ask mark for best practices)
--- TODO(aray): share code for clock divider if possible
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
