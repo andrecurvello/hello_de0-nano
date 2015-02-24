@@ -42,7 +42,7 @@ begin -- architecture uart_rx_arch
                     if (wire = '0') then -- start bit!
                         busy_reg <= '1';
                         valid_reg <= '0';
-                        data_reg <= "1111111111"; -- done when 0 gets to the top
+                        data_reg <= "1111111111"; -- done when 0 gets to the end
                         clk_counter <= clk_counter_half; -- sample halfway
                     end if;
                 else -- We have a transmit in progress
@@ -53,9 +53,10 @@ begin -- architecture uart_rx_arch
                             busy_reg <= '0'; -- first bit wasnt 0, bail out
                         else -- TODO: reset out if first sample is not '0'
                             clk_counter <= 1; -- wraparound
-                            data_reg <= data_reg(8 downto 0) & wire;
-                            if (data_reg(9) = '0') then -- done!
-                                if (data_reg(0) = '1') then -- check stop bit
+                            data_reg <= wire & data_reg(9 downto 1);
+                            if (data_reg(1) = '0') then -- done!
+                                busy_reg <= '0';
+                                if (wire = '1') then -- check stop bit
                                     valid_reg <= '1';
                                 else -- TODO convert 'data(0) = 1' to valid_reg
                                     valid_reg <= '0';

@@ -10,11 +10,16 @@ entity top is
 end top;
 
 architecture arch of top is
-    -- TODO(aray): XXX REMOVEME BARF HACK
-    signal   busy         : std_logic;
-    signal   enable       : std_logic := '0';
-    signal   wire         : std_logic;
-    signal   data         : std_logic_vector(7 downto 0);
+    signal  tx_busy   : std_logic;
+    signal  tx_enable : std_logic;
+    signal  tx_wire   : std_logic;
+    signal  tx_data   : std_logic_vector(7 downto 0);
+    signal  rx_reset  : std_logic;
+    signal  rx_wire   : std_logic;
+    signal  rx_busy   : std_logic;
+    signal  rx_valid  : std_logic;
+    signal  rx_data   : std_logic_vector(7 downto 0);
+
 	 
     component hello
         generic(
@@ -36,7 +41,21 @@ architecture arch of top is
             busy   : out std_logic;
             enable : in  std_logic;
             wire   : out std_logic;
-            data   : in  std_logic_vector( 7 downto 0) := "00000000"
+            data   : in  std_logic_vector( 7 downto 0)
+        );
+    end component;
+    component uart_rx
+        generic(
+            clock_freq_hz : integer;
+            baud_hz       : integer
+        );
+        port(
+            clock  : in  std_logic;
+            reset  : in  std_logic;
+            wire   : in  std_logic;
+            busy   : out std_logic;
+            valid  : out std_logic;
+            data   : out std_logic_vector(7 downto 0)
         );
     end component;
 begin
@@ -57,10 +76,24 @@ begin
         )
         port map (
             clock  => CLOCK_50,
-            busy   => busy,
-            enable => enable,
-            wire   => wire,
-            data   => data
+            busy   => tx_busy,
+            enable => tx_enable,
+            wire   => tx_wire,
+            data   => tx_data
+        )
+    ;
+    uart_rx_u0: uart_rx
+        generic map (
+            clock_freq_hz => 50000000,
+            baud_hz  =>      25000000
+        )
+        port map (
+            clock  => CLOCK_50,
+            reset  => rx_reset,
+            wire   => rx_wire,
+            busy   => rx_busy,
+            valid  => rx_valid,
+            data   => rx_data
         )
     ;
 end architecture;
