@@ -5,7 +5,8 @@ use ieee.std_logic_1164.all;
 entity top is
     port(
         CLOCK_50 : in  std_logic;
-        LED      : out std_logic_vector( 7 downto 0 )
+        LED      : out std_logic_vector( 7 downto 0 );
+        GPIO_0   : inout std_logic_vector( 33 downto 0 ) := (others => 'Z')
     );
 end top;
 
@@ -20,7 +21,6 @@ architecture arch of top is
     signal  rx_valid  : std_logic;
     signal  rx_data   : std_logic_vector(7 downto 0);
 
-	 
     component hello
         generic(
             clock_freq_hz : integer;
@@ -28,7 +28,8 @@ architecture arch of top is
         );
         port( 
             clock : in  std_logic;
-            led   : out std_logic_vector( 7 downto 0 )
+            led   : out std_logic_vector( 7 downto 0 );
+				tick  : out std_logic
         );
     end component;
     component uart_tx
@@ -59,6 +60,10 @@ architecture arch of top is
         );
     end component;
 begin
+    GPIO_0(0) <= tx_wire;
+    GPIO_0(1) <= rx_wire;
+    LED <= tx_data;
+
     hello_u0: hello
         generic map (
             clock_freq_hz => 50000000,
@@ -66,7 +71,8 @@ begin
         )
         port map (
             clock => CLOCK_50,
-            led   => LED
+            led   => tx_data,
+            tick  => tx_enable
         )
     ;
     uart_tx_u0: uart_tx
@@ -85,7 +91,7 @@ begin
     uart_rx_u0: uart_rx
         generic map (
             clock_freq_hz => 50000000,
-            baud_hz  =>      25000000
+            baud_hz  =>          9600
         )
         port map (
             clock  => CLOCK_50,

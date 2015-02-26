@@ -10,6 +10,7 @@ architecture hello_tb_arch of hello_tb is
     constant clock_period : time := 20 ns;
     signal   clock        : std_logic;
     signal   led          : std_logic_vector(7 downto 0);
+    signal   tick         : std_logic;
 
     component hello
         generic(
@@ -18,7 +19,8 @@ architecture hello_tb_arch of hello_tb is
         );
         port(
             clock : in  std_logic;
-            led   : out std_logic_vector( 7 downto 0 )
+            led   : out std_logic_vector( 7 downto 0 );
+            tick  : out std_logic
         );
     end component hello;
 
@@ -30,7 +32,8 @@ begin -- architecture hello_tb_arch
         )
         port map (
             clock => clock,
-            led   => led
+            led   => led,
+            tick  => tick
         )
     ;
 

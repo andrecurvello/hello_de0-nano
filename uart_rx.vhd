@@ -41,10 +41,10 @@ begin -- architecture uart_rx_arch
                 if (busy_reg = '0') then -- no receive in progress
                     if (wire = '0') then -- start bit!
                         busy_reg <= '1';
-                        valid_reg <= '0';
                         data_reg <= "1111111111"; -- done when 0 gets to the end
                         clk_counter <= clk_counter_half; -- sample halfway
                     end if;
+                    valid_reg <= '0';
                 else -- We have a transmit in progress
                     if (clk_counter < clk_counter_max) then
                         clk_counter <= clk_counter + 1; -- count up to tick
