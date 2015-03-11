@@ -45,7 +45,7 @@ begin -- architecture spi_master_tb_arch
     spi_master_u0: spi_master
         generic map (
             fpga_clk_freq_hz => 50000000,
-            sclk_freq_hz =>     12500000,
+            sclk_freq_hz =>     25000000,
             cpol => '0',
             cpha => '1'
         )
@@ -82,7 +82,7 @@ begin -- architecture spi_master_tb_arch
         wait for clock_period;
         data_tx <= "00000000";
         enable <= '0';
-        wait for clock_period * 32;
+        wait for clock_period * 16;
         data_tx <= "01101000";
         enable <= '1';
         wait for clock_period;

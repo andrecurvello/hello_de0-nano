@@ -56,12 +56,11 @@ begin  -- architecture spi_master_arch of spi_master
       else
         if (ss_l_reg = '1') then  -- if no transaction in progress...
           if (enable = '1') then  -- ...start a new transaction
+            clk_counter <= 1;
             if (cpha = '0') then
               data_tx_reg <= data_tx(7 downto 0) & '1' & '0';
-              clk_counter <= 1;
             else  -- cpha = '1'
               data_tx_reg <= data_tx(7) & data_tx(7 downto 0) & '1';
-              clk_counter <= clk_counter_max;  -- tick next fpga_clock
             end if;
             sclk_reg <= cpol;
             ss_l_reg <= '0';
