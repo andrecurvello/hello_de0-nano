@@ -66,7 +66,7 @@ begin  -- architecture spi_master_arch of spi_master
             clk_counter <= clk_counter + 1;  -- count up to tick...
           else  -- ...tick
             clk_counter <= 1;
-            if (cpol xor cpha xor sclk_reg) then  -- switch data time!
+            if ((cpol xor cpha xor sclk_reg) = '1') then  -- switch data time!
               if (data_tx_reg(7 downto 0) = "10000000") then  -- end of byte
                 if (enable = '1') then -- continue transaction
                   data_tx_reg <= data_tx(7 downto 0) & '1';  -- next data to Tx

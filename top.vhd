@@ -20,6 +20,16 @@ architecture arch of top is
     signal  rx_busy   : std_logic;
     signal  rx_valid  : std_logic;
     signal  rx_data   : std_logic_vector(7 downto 0);
+    signal  spi_enable  : std_logic;
+    signal  spi_reset   : std_logic;
+    signal  spi_busy    : std_logic;
+    signal  spi_done    : std_logic;
+    signal  spi_data_tx : std_logic_vector(7 downto 0);
+    signal  spi_data_rx : std_logic_vector(7 downto 0);
+    signal  spi_sclk    : std_logic;
+    signal  spi_mosi    : std_logic;
+    signal  spi_miso    : std_logic;
+    signal  spi_ss_l    : std_logic;
 
     component hello
         generic(
@@ -57,6 +67,27 @@ architecture arch of top is
             busy   : out std_logic;
             valid  : out std_logic;
             data   : out std_logic_vector(7 downto 0)
+        );
+    end component;
+    component spi_master
+        generic(
+            fpga_clk_freq_hz : integer;
+            sclk_freq_hz     : integer;
+            cpol             : std_logic;
+            cpha             : std_logic
+        );
+        port(
+            fpga_clock  : in  std_logic;
+            enable      : in  std_logic;
+            reset       : in  std_logic;
+            busy        : out std_logic;
+            done        : out std_logic;
+            data_tx     : in  std_logic_vector(7 downto 0);
+            data_rx     : out std_logic_vector(7 downto 0);
+            sclk        : out std_logic;
+            mosi        : out std_logic;
+            miso        : in  std_logic;
+            ss_l        : out std_logic
         );
     end component;
 begin
@@ -100,6 +131,27 @@ begin
             busy   => rx_busy,
             valid  => rx_valid,
             data   => rx_data
+        )
+    ;
+    spi_master_u0: spi_master
+        generic map (
+            fpga_clk_freq_hz => 50000000,
+            sclk_freq_hz => 1000000,
+            cpol => '0',
+            cpha => '0'
+        )
+        port map (
+            fpga_clock => CLOCK_50,
+            enable     => spi_enable,
+            reset      => spi_reset,
+            busy       => spi_busy,
+            done       => spi_done,
+            data_tx    => spi_data_tx,
+            data_rx    => spi_data_rx,
+            sclk       => spi_sclk,
+            mosi       => spi_mosi,
+            miso       => spi_miso,
+            ss_l       => spi_ss_l
         )
     ;
 end architecture;
