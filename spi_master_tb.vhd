@@ -8,7 +8,7 @@ end entity spi_master_tb;
 
 architecture spi_master_tb_arch of spi_master_tb is
     constant clock_period : time := 20 ns;
-    signal   clock   : std_logic := '0';
+    signal   clock        : std_logic := '0';
     signal   enable       : std_logic := '0';
     signal   reset        : std_logic := '0';
     signal   busy         : std_logic := '0';
@@ -45,9 +45,9 @@ begin -- architecture spi_master_tb_arch
     spi_master_u0: spi_master
         generic map (
             fpga_clk_freq_hz => 50000000,
-            sclk_freq_hz => 25000000,
+            sclk_freq_hz =>     12500000,
             cpol => '0',
-            cpha => '0'
+            cpha => '1'
         )
         port map (
             fpga_clock => clock,
@@ -82,7 +82,7 @@ begin -- architecture spi_master_tb_arch
         wait for clock_period;
         data_tx <= "00000000";
         enable <= '0';
-        wait for clock_period * 15;
+        wait for clock_period * 32;
         data_tx <= "01101000";
         enable <= '1';
         wait for clock_period;
