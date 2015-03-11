@@ -62,10 +62,9 @@ begin  -- architecture spi_master_arch of spi_master
             ss_l_reg <= '0';
           end if;
         else  -- transaction in progress
-          if (clk_counter < clk_counter_max) then
-            clk_counter <= clk_counter + 1;  -- count up to tick...
-          else  -- ...tick
+          if (clk_counter = clk_counter_max) then -- tick
             clk_counter <= 1;
+            sclk_reg <= not sclk_reg;
             if ((cpol xor cpha xor sclk_reg) = '1') then  -- switch data time!
               if (data_tx_reg(7 downto 0) = "10000000") then  -- end of byte
                 if (enable = '1') then -- continue transaction
@@ -75,11 +74,13 @@ begin  -- architecture spi_master_arch of spi_master
                 end if;
                 done_reg <= '1';  -- blip for one clk_div (sequential assignment)
               else  -- continue transaction
-                data_tx_reg <= '0' & data_tx_reg(8 downto 1);  -- shift out
+                data_tx_reg <= data_tx_reg(7 downto 0) & '0';  -- shift out
               end if;
             else  -- sample time!
               data_rx_reg <= data_rx_reg(6 downto 0) & miso;  -- shift in
             end if;
+          else  -- count up to tick...
+            clk_counter <= clk_counter + 1;
           end if;
         end if;
       end if;
