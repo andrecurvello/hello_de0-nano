@@ -10,6 +10,7 @@ entity spi_slave is
   );
   port(
     -- Internal (FPGA) interface
+    fpga_clock  : in  std_logic;  -- input clock
     done        : out std_logic;  -- indicates SPI transaction complete
     data_tx     : in  std_logic_vector(7 downto 0);  -- data to transmit
     data_rx     : out std_logic_vector(7 downto 0);  -- data received
@@ -24,15 +25,13 @@ end spi_slave;
 
 architecture spi_slave_arch of spi_slave is
   signal   done_reg        : std_logic := '0';
-  signal   data_tx_reg     : std_logic_vector(8 downto 0) := "000000000";
-  signal   data_rx_reg     : std_logic_vector(7 downto 0) := "00000000";
+  signal   data_tx_reg     : std_logic_vector(7 downto 0) := "00000000";
+  signal   data_rx_reg     : std_logic_vector(8 downto 0) := "000000000";
   signal   miso_reg        : std_logic := '0';
-  signal   clk_reg         : std_logic := '0';
 begin  -- architecture spi_slave_arch of spi_slave
   done    <= done_reg;
-  data_rx <= data_rx_reg;
   miso    <= data_tx_reg(7);
-  clk_reg <= (cpol xor cpha xor sclk);
+  data_rx <= data_rx_reg(7 downto 0);
 
   -- TODO(aray): oh crap clean up the nesting (See also TODO:Learn VHDL)
   spi_div : process(ss_l, clk_reg)
@@ -53,4 +52,14 @@ begin  -- architecture spi_slave_arch of spi_slave
       end if;
     end if;
   end process spi_div;
+
+  clk_div : process(fpga_clock)
+  begin
+    if rising_edge(fpga_clock) then
+      done_reg <= '0';
+      if (ss_l = '0') then
+        boo;
+      end if;
+    end if;
+  end process clk_div;
 end architecture spi_slave_arch;
