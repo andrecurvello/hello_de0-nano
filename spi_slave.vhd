@@ -24,14 +24,14 @@ end spi_slave;
 
 architecture spi_slave_arch of spi_slave is
   signal   done_reg        : std_logic := '0';
-  signal   data_tx_reg     : std_logic_vector(8 downto 0) := "000000000";
+  signal   data_tx_reg     : std_logic_vector(9 downto 0) := "0000000000";
   signal   data_rx_reg     : std_logic_vector(8 downto 0) := "000000000";
   signal   miso_reg        : std_logic := '0';
   signal   clk_reg         : std_logic := '0';
 begin  -- architecture spi_slave_arch of spi_slave
   done    <= data_rx_reg(8);
   data_rx <= data_rx_reg(7 downto 0);
-  miso    <= data_tx_reg(8);
+  miso    <= data_tx_reg(9);
   clk_reg <= (cpol xor cpha xor sclk);
 
   -- TODO(aray): oh crap clean up the nesting (See also TODO:Learn VHDL)
@@ -39,10 +39,14 @@ begin  -- architecture spi_slave_arch of spi_slave
   begin
     if (ss_l = '1') then  -- reset time!
       data_rx_reg <= "000000000";
-      data_tx_reg <= "000000000";
+      data_tx_reg <= "0000000000";
     else
       if (data_rx_reg = "000000000") then  -- start time!
-        data_tx_reg <= data_tx & '1';
+        if (cpha = '1') then
+          data_tx_reg <= data_tx(7) & data_tx & '1';
+        else
+          data_tx_reg <= data_tx & "10";
+        end if;
         data_rx_reg <= "000000001";
       else -- TODO: bring up RTL viewer, make sure these statements are sensible
         if rising_edge(clk_reg) then  -- sample time!
@@ -52,10 +56,10 @@ begin  -- architecture spi_slave_arch of spi_slave
             data_rx_reg <= data_rx_reg(7 downto 0) & mosi;  -- shift in
           end if;
         elsif falling_edge(clk_reg) then  -- switch time!
-          if (data_tx_reg = "100000000") then
-            data_tx_reg <= data_tx & '1';  -- continue to next byte
+          if (data_tx_reg(8 downto 0) = "100000000") then
+            data_tx_reg <= data_tx & "10";  -- continue to next byte
           else
-            data_tx_reg <= data_tx_reg(7 downto 0) & '0';   -- shift out
+            data_tx_reg <= data_tx_reg(8 downto 0) & '0';   -- shift out
           end if;
         end if;
       end if;
