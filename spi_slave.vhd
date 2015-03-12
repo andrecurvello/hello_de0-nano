@@ -25,41 +25,40 @@ end spi_slave;
 architecture spi_slave_arch of spi_slave is
   signal   done_reg        : std_logic := '0';
   signal   data_tx_reg     : std_logic_vector(8 downto 0) := "000000000";
-  signal   data_rx_reg     : std_logic_vector(7 downto 0) := "00000000";
+  signal   data_rx_reg     : std_logic_vector(8 downto 0) := "000000000";
   signal   miso_reg        : std_logic := '0';
   signal   clk_reg         : std_logic := '0';
 begin  -- architecture spi_slave_arch of spi_slave
-  done    <= done_reg;
-  data_rx <= data_rx_reg;
-  miso    <= data_tx_reg(7);
+  done    <= data_rx_reg(8);
+  data_rx <= data_rx_reg(7 downto 0);
+  miso    <= data_tx_reg(8);
   clk_reg <= (cpol xor cpha xor sclk);
 
   -- TODO(aray): oh crap clean up the nesting (See also TODO:Learn VHDL)
-  spi_div : process(ss_l, clk_reg)
+  p : process(ss_l, clk_reg)
   begin
-    done_reg <= '0';
-    if (ss_l = '1') then
-      -- TODO: no conditionals in here
-      -- TODO: this check isn't valid since you can get SS_L before last sample
-      -- TODO: twiddle 'done_reg' at last sample
-      -- TODO: put sentinel in 'data_rx_reg'
-      if (data_tx_reg = "100000000") then  -- successfully finished
-        done_reg <= '1';
-      end if;
+    if (ss_l = '1') then  -- reset time!
+      data_rx_reg <= "000000000";
       data_tx_reg <= "000000000";
     else
-      if (data_tx_reg = "000000000") then  -- start time!
-        -- TODO: ken says get rid of this
-        data_tx_reg <= data_tx & '1';                   -- latch in
-      end if;
-
-      if rising_edge(clk_reg) then      -- sample time!
-        data_rx_reg <= data_rx_reg(6 downto 0) & mosi;  -- shift in
-      end if;
-      -- TODO: bring up RTL viewer, make sure this is sensible
-      if falling_edge(clk_reg) then     -- switch time!
-        data_tx_reg <= data_tx_reg(7 downto 0) & '0';   -- shift out
+      if (data_rx_reg = "000000000") then  -- start time!
+        data_tx_reg <= data_tx & '1';
+        data_rx_reg <= "000000001";
+      else -- TODO: bring up RTL viewer, make sure these statements are sensible
+        if rising_edge(clk_reg) then  -- sample time!
+          if (data_rx_reg(8) = '1') then  -- continue to next byte
+            data_rx_reg <= "00000001" & mosi;
+          else
+            data_rx_reg <= data_rx_reg(7 downto 0) & mosi;  -- shift in
+          end if;
+        elsif falling_edge(clk_reg) then  -- switch time!
+          if (data_tx_reg = "100000000") then
+            data_tx_reg <= data_tx & '1';  -- continue to next byte
+          else
+            data_tx_reg <= data_tx_reg(7 downto 0) & '0';   -- shift out
+          end if;
+        end if;
       end if;
     end if;
-  end process spi_div;
+  end process p;
 end architecture spi_slave_arch;
