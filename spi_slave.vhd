@@ -26,33 +26,29 @@ architecture spi_slave_arch of spi_slave is
   signal   done_reg        : std_logic := '0';
   signal   data_tx_reg     : std_logic_vector(8 downto 0) := "000000000";
   signal   data_rx_reg     : std_logic_vector(7 downto 0) := "00000000";
-  signal   sclk_reg        : std_logic := cpol;
   signal   miso_reg        : std_logic := '0';
+  signal   clk_reg         : std_logic := '0';
 begin  -- architecture spi_slave_arch of spi_slave
   done    <= done_reg;
   data_rx <= data_rx_reg;
   miso    <= data_tx_reg(7);
+  clk_reg <= (cpol xor cpha xor sclk);
 
   -- TODO(aray): oh crap clean up the nesting (See also TODO:Learn VHDL)
-  spi_div : process(ss_l, sclk)
+  spi_div : process(ss_l, clk_reg)
   begin
-    done <= '0';
-    if falling_edge(ss_l) then
-      data_tx_reg <= data_tx & '1';  -- latch in data to transmit
-    elsif rising_edge(ss_l) then
+    done_reg <= '0';
+    if (ss_l = '1') then
       if (data_tx_reg = "100000000") then  -- successfully finished
-        done <= '1';
+        done_reg <= '1';
       end if;
-    elsif rising_edge(sclk) then
-      if ((cpol xor cpha) = '1') then -- switch time!
-        data_tx_reg <= data_tx_reg(7 downto 0) & '0';  -- shift out
-      else -- sample time!
-        data_rx_reg <= data_rx_reg(6 downto 0) & mosi;  -- shift in
-      end if;
-    elsif falling_edge(sclk) then
-      if ((cpol xor cpha) = '0') then -- switch time!
-        data_tx_reg <= data_tx_reg(7 downto 0) & '0';  -- shift out
-      else -- sample time!
+      data_tx_reg <= "000000000";
+    else
+      if (data_tx_reg = "000000000") then  -- start time!
+        data_tx_reg <= data_tx & '1';                   -- latch in
+      elsif falling_edge(clk_reg) then     -- switch time!
+        data_tx_reg <= data_tx_reg(7 downto 0) & '0';   -- shift out
+      elsif rising_edge(clk_reg) then      -- sample time!
         data_rx_reg <= data_rx_reg(6 downto 0) & mosi;  -- shift in
       end if;
     end if;
