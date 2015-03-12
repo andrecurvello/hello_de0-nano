@@ -39,17 +39,26 @@ begin  -- architecture spi_slave_arch of spi_slave
   begin
     done_reg <= '0';
     if (ss_l = '1') then
+      -- TODO: no conditionals in here
+      -- TODO: this check isn't valid since you can get SS_L before last sample
+      -- TODO: twiddle 'done_reg' at last sample
+      -- TODO: put sentinel in 'data_rx_reg'
       if (data_tx_reg = "100000000") then  -- successfully finished
         done_reg <= '1';
       end if;
       data_tx_reg <= "000000000";
     else
       if (data_tx_reg = "000000000") then  -- start time!
+        -- TODO: ken says get rid of this
         data_tx_reg <= data_tx & '1';                   -- latch in
-      elsif falling_edge(clk_reg) then     -- switch time!
-        data_tx_reg <= data_tx_reg(7 downto 0) & '0';   -- shift out
-      elsif rising_edge(clk_reg) then      -- sample time!
+      end if;
+
+      if rising_edge(clk_reg) then      -- sample time!
         data_rx_reg <= data_rx_reg(6 downto 0) & mosi;  -- shift in
+      end if;
+      -- TODO: bring up RTL viewer, make sure this is sensible
+      if falling_edge(clk_reg) then     -- switch time!
+        data_tx_reg <= data_tx_reg(7 downto 0) & '0';   -- shift out
       end if;
     end if;
   end process spi_div;
