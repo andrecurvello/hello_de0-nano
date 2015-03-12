@@ -24,8 +24,10 @@ architecture arch of top is
     signal  spi_reset   : std_logic;
     signal  spi_busy    : std_logic;
     signal  spi_done    : std_logic;
-    signal  spi_data_tx : std_logic_vector(7 downto 0);
-    signal  spi_data_rx : std_logic_vector(7 downto 0);
+    signal  spi_master_tx : std_logic_vector(7 downto 0);
+    signal  spi_master_rx : std_logic_vector(7 downto 0);
+    signal  spi_slave_tx  : std_logic_vector(7 downto 0);
+    signal  spi_slave_rx  : std_logic_vector(7 downto 0);
     signal  spi_sclk    : std_logic;
     signal  spi_mosi    : std_logic;
     signal  spi_miso    : std_logic;
@@ -90,6 +92,21 @@ architecture arch of top is
             ss_l        : out std_logic
         );
     end component;
+    component spi_slave
+      generic(
+        cpol             : std_logic;
+        cpha             : std_logic
+      );
+      port(
+        done        : out std_logic;
+        data_tx     : in  std_logic_vector(7 downto 0);
+        data_rx     : out std_logic_vector(7 downto 0);
+        sclk        : in  std_logic;
+        mosi        : in  std_logic;
+        miso        : out std_logic;
+        ss_l        : in  std_logic
+      );
+    end component;
 begin
     GPIO_0(0) <= tx_wire;
     GPIO_0(1) <= rx_wire;
@@ -146,8 +163,23 @@ begin
             reset      => spi_reset,
             busy       => spi_busy,
             done       => spi_done,
-            data_tx    => spi_data_tx,
-            data_rx    => spi_data_rx,
+            data_tx    => spi_master_tx,
+            data_rx    => spi_master_rx,
+            sclk       => spi_sclk,
+            mosi       => spi_mosi,
+            miso       => spi_miso,
+            ss_l       => spi_ss_l
+        )
+    ;
+    spi_slave_u0: spi_slave
+        generic map (
+            cpol => '0',
+            cpha => '0'
+        )
+        port map (
+            done       => spi_done,
+            data_tx    => spi_slave_tx,
+            data_rx    => spi_slave_rx,
             sclk       => spi_sclk,
             mosi       => spi_mosi,
             miso       => spi_miso,
